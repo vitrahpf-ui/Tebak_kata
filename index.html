@@ -3,10 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tebak Edukasi SD - Mabar 2 Pemain</title>
+    <title>Tebak Kata Edukasi SD - Mabar Kartun</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap');
+        
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background: #e0f2fe;
+        }
+
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-4px); }
+        }
+        .char-idle { animation: floatSlow 2.6s ease-in-out infinite; }
+
+        @keyframes popBubble {
+            0% { transform: scale(0.5) translateY(10px); opacity: 0; }
+            70% { transform: scale(1.08) translateY(-2px); opacity: 1; }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        .bubble-pop { animation: popBubble 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             25% { transform: translateX(-8px); }
@@ -14,160 +34,259 @@
             75% { transform: translateX(-8px); }
         }
         .shake { animation: shake 0.35s ease-in-out; }
-        .letter-box { letter-spacing: 0.35em; }
     </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col items-center justify-center p-4 font-sans">
+<body class="min-h-screen flex flex-col items-center justify-center p-3 md:p-6 bg-gradient-to-b from-sky-200 via-sky-100 to-amber-50 text-slate-800">
 
-    <div class="w-full max-w-xl bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl p-6 md:p-8">
-        <!-- HEADER -->
-        <div class="text-center mb-6">
-            <span class="bg-indigo-600/30 text-indigo-300 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Edisi Pelajaran SD • 20 Tema</span>
-            <h1 class="text-2xl md:text-3xl font-extrabold text-white mt-2">Tebak Kata Edukasi</h1>
-            <p class="text-slate-400 text-sm mt-1">1 Soal • 5 Menit • Kerja Sama Tim (Menang / Kalah Bersama)</p>
+    <div class="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border-4 border-sky-300 overflow-hidden">
+        
+        <!-- TOP HEADER -->
+        <div class="bg-sky-500 text-white px-6 py-4 flex flex-wrap items-center justify-between gap-2 border-b-4 border-sky-600">
+            <div>
+                <h1 class="text-xl md:text-2xl font-bold tracking-wide flex items-center gap-2">
+                    <span>🎒</span> Tebak Kata Edukasi SD
+                </h1>
+                <p class="text-sky-100 text-xs">20 Tema Sekolah • 1 Soal • Timer 5 Menit</p>
+            </div>
+            <span class="bg-amber-400 text-amber-950 text-xs font-bold px-3 py-1 rounded-full shadow-sm">
+                Mabar 2 Pemain
+            </span>
         </div>
 
         <!-- SCREEN 1: LOBBY -->
-        <div id="screen-lobby" class="space-y-6">
-            <!-- BUAT ROOM (PLAYER 1) -->
-            <div class="bg-slate-700/50 p-5 rounded-xl border border-slate-600 space-y-4">
-                <h2 class="font-bold text-lg text-emerald-400 flex items-center gap-2">
-                    <span>🎮</span> Buat Room (Pemain 1 - Pemberi Petunjuk)
-                </h2>
+        <div id="screen-lobby" class="p-6 space-y-5">
+            <!-- BUAT ROOM (PLAYER 1 / INSTRUKTUR) -->
+            <div class="bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-5 space-y-3">
+                <div class="flex items-center gap-2 text-emerald-700 font-bold text-lg">
+                    <span>🧑‍🏫</span> Buat Room (Pemain 1 - Instruktur)
+                </div>
                 <div>
-                    <label class="block text-xs text-slate-300 mb-1">Pilih 1 dari 20 Tema Pelajaran SD:</label>
-                    <select id="theme-select" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none">
-                        <!-- Diisi otomatis oleh JS -->
+                    <label class="block text-xs font-semibold text-emerald-800 mb-1">Pilih 1 dari 20 Tema Pelajaran SD:</label>
+                    <select id="theme-select" class="w-full bg-white border-2 border-emerald-300 rounded-xl p-2.5 text-sm font-semibold text-slate-700 focus:outline-none focus:border-emerald-500">
                     </select>
                 </div>
-                <button id="btn-create-room" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg transition shadow-lg">
+                <button id="btn-create-room" class="w-full bg-emerald-500 hover:bg-emerald-600 active:translate-y-0.5 text-white font-bold py-3 rounded-xl shadow-md border-b-4 border-emerald-700 transition">
                     Buat Kode Room
                 </button>
             </div>
 
-            <div class="relative flex py-1 items-center">
-                <div class="flex-grow border-t border-slate-700"></div>
-                <span class="flex-shrink mx-4 text-slate-500 text-xs uppercase">Atau Gabung Teman</span>
-                <div class="flex-grow border-t border-slate-700"></div>
-            </div>
-
-            <!-- GABUNG ROOM (PLAYER 2) -->
-            <div class="bg-slate-700/50 p-5 rounded-xl border border-slate-600 space-y-4">
-                <h2 class="font-bold text-lg text-sky-400 flex items-center gap-2">
-                    <span>🔍</span> Gabung Room (Pemain 2 - Penebak)
-                </h2>
+            <!-- GABUNG ROOM (PLAYER 2 / PENEBak) -->
+            <div class="bg-sky-50 border-2 border-sky-300 rounded-2xl p-5 space-y-3">
+                <div class="flex items-center gap-2 text-sky-700 font-bold text-lg">
+                    <span>🧒</span> Gabung Room (Pemain 2 - Penebak)
+                </div>
                 <div class="flex gap-2">
-                    <input type="text" id="input-room-code" placeholder="Masukkan Kode Room (misal: SD-4821)" 
-                        class="flex-1 bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-sm text-white uppercase focus:ring-2 focus:ring-sky-500 outline-none">
-                    <button id="btn-join-room" class="bg-sky-600 hover:bg-sky-500 text-white font-bold px-5 py-2.5 rounded-lg transition shadow-lg">
+                    <input type="text" id="input-room-code" placeholder="Kode Room (misal: SD-1234)" 
+                        class="flex-1 bg-white border-2 border-sky-300 rounded-xl p-2.5 text-sm font-bold uppercase text-slate-700 focus:outline-none focus:border-sky-500">
+                    <button id="btn-join-room" class="bg-sky-500 hover:bg-sky-600 active:translate-y-0.5 text-white font-bold px-6 py-2.5 rounded-xl shadow-md border-b-4 border-sky-700 transition">
                         Masuk
                     </button>
                 </div>
             </div>
-            <p id="lobby-status" class="text-center text-sm text-amber-400 hidden"></p>
+
+            <p id="lobby-status" class="text-center text-sm font-semibold text-rose-500 hidden"></p>
         </div>
 
-        <!-- SCREEN 2: WAITING ROOM (HOST) -->
-        <div id="screen-waiting" class="hidden text-center space-y-5 py-4">
-            <p class="text-slate-300 text-sm">Bagikan kode room ini ke Pemain 2:</p>
-            <div class="bg-slate-900 border-2 border-dashed border-emerald-500 rounded-xl p-4">
-                <span id="display-room-code" class="text-3xl font-mono font-extrabold text-emerald-400 tracking-widest select-all">...</span>
+        <!-- SCREEN 2: WAITING ROOM -->
+        <div id="screen-waiting" class="hidden p-8 text-center space-y-5">
+            <p class="text-slate-600 font-semibold">Minta temanmu memasukkan kode room ini:</p>
+            <div class="bg-amber-100 border-4 border-dashed border-amber-400 rounded-2xl p-5 inline-block px-10">
+                <span id="display-room-code" class="text-4xl font-extrabold text-amber-600 tracking-widest select-all">...</span>
             </div>
-            <p class="text-xs text-slate-400">Tema terpilih: <strong id="waiting-theme-name" class="text-white"></strong></p>
-            <div class="flex items-center justify-center gap-2 text-amber-400 text-sm animate-pulse">
-                <span>⏳</span> Menunggu Pemain 2 bergabung...
-            </div>
-        </div>
-
-        <!-- SCREEN 3: GAMEPLAY -->
-        <div id="screen-game" class="hidden space-y-5">
-            <!-- Top Bar: Tema & Timer -->
-            <div class="flex justify-between items-center bg-slate-900/80 px-4 py-3 rounded-xl border border-slate-700">
-                <div>
-                    <span class="text-xs text-slate-400 block">Tema Pelajaran</span>
-                    <span id="game-theme-badge" class="text-sm font-bold text-indigo-400">Biologi - Hewan</span>
-                </div>
-                <div class="text-right">
-                    <span class="text-xs text-slate-400 block">Sisa Waktu</span>
-                    <span id="game-timer" class="text-xl font-mono font-extrabold text-amber-400">05:00</span>
-                </div>
-            </div>
-
-            <!-- KONTROL PLAYER 1 (MASTER / PEMBERI PETUNJUK) -->
-            <div id="panel-p1" class="hidden space-y-4">
-                <div class="bg-emerald-950/50 border border-emerald-700/60 p-4 rounded-xl text-center">
-                    <span class="text-xs uppercase tracking-wider text-emerald-400 font-semibold">Kata Rahasia (Jawab Pertanyaan P2!)</span>
-                    <div id="p1-secret-word" class="text-3xl font-black text-white tracking-widest my-2">AYAM</div>
-                    <p id="p1-fact-preview" class="text-xs text-slate-300 italic"></p>
-                </div>
-
-                <div class="text-center">
-                    <p class="text-xs text-slate-400 mb-2">Dengarkan pertanyaan Pemain 2 (via suara/chat), lalu klik jawaban:</p>
-                    <div class="grid grid-cols-3 gap-3">
-                        <button onclick="sendSignal('IYA')" class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-extrabold py-4 rounded-xl shadow-lg transition text-lg">
-                            IYA
-                        </button>
-                        <button onclick="sendSignal('TIDAK')" class="bg-rose-600 hover:bg-rose-500 active:scale-95 text-white font-extrabold py-4 rounded-xl shadow-lg transition text-lg">
-                            TIDAK
-                        </button>
-                        <button onclick="sendSignal('BISA JADI')" class="bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-900 font-extrabold py-4 rounded-xl shadow-lg transition text-lg">
-                            BISA JADI
-                        </button>
-                    </div>
-                </div>
-
-                <div class="bg-slate-900 p-3 rounded-xl border border-slate-700">
-                    <span class="text-xs text-slate-400 block mb-1">Tebakan Terbaru Pemain 2:</span>
-                    <div id="p1-guess-log" class="text-sm font-mono text-slate-300 h-20 overflow-y-auto space-y-1">
-                        <span class="text-slate-500 italic">Belum ada tebakan...</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- KONTROL PLAYER 2 (PENEBak) -->
-            <div id="panel-p2" class="hidden space-y-4">
-                <div class="bg-sky-950/50 border border-sky-700/60 p-5 rounded-xl text-center">
-                    <span class="text-xs uppercase tracking-wider text-sky-400 font-semibold">Petunjuk Huruf Kata Rahasia</span>
-                    <div id="p2-masked-word" class="text-3xl md:text-4xl font-mono font-black text-white letter-box my-3">_ Y _ _</div>
-                    <p class="text-xs text-slate-400">Tanyakan ciri-cirinya ke Pemain 1 (hanya bisa dijawab Iya / Tidak / Bisa Jadi)</p>
-                </div>
-
-                <!-- Kotak Sinyal Jawaban dari P1 -->
-                <div class="bg-slate-900 border border-slate-700 rounded-xl p-3 text-center">
-                    <span class="text-xs text-slate-400 block">Respon Terakhir Pemain 1:</span>
-                    <div id="p2-signal-display" class="text-2xl font-black text-slate-500 mt-1">- MENUNGGU -</div>
-                </div>
-
-                <!-- Form Tebakan -->
-                <form id="form-guess" class="space-y-2">
-                    <label class="block text-xs text-slate-300">Ketik jawabanmu sampai benar (bebas huruf besar/kecil):</label>
-                    <div class="flex gap-2">
-                        <input type="text" id="input-guess" autocomplete="off" placeholder="Ketik jawaban di sini..." 
-                            class="flex-1 bg-slate-900 border border-slate-600 rounded-lg p-3 text-white font-bold focus:ring-2 focus:ring-sky-500 outline-none">
-                        <button type="submit" class="bg-sky-600 hover:bg-sky-500 text-white font-bold px-6 rounded-lg transition">
-                            Tebak!
-                        </button>
-                    </div>
-                    <p id="p2-feedback" class="text-xs text-rose-400 h-4"></p>
-                </form>
+            <p class="text-sm text-slate-500">Tema Pelajaran: <strong id="waiting-theme-name" class="text-sky-600"></strong></p>
+            <div class="text-emerald-600 font-bold animate-pulse text-sm">
+                ⏳ Menunggu Pemain 2 duduk di kursi sebelah...
             </div>
         </div>
 
-        <!-- SCREEN 4: HASIL AKHIR (MENANG / KALAH) -->
-        <div id="screen-result" class="hidden text-center space-y-5 py-4">
-            <div id="result-badge" class="inline-block px-4 py-1.5 rounded-full text-sm font-extrabold uppercase tracking-wider"></div>
-            <h2 id="result-title" class="text-3xl font-black text-white"></h2>
+        <!-- SCREEN 3: GAMEPLAY DENGAN 2 KARAKTER DUDUK BERHADAPAN -->
+        <div id="screen-game" class="hidden">
             
-            <div class="bg-slate-900 border border-slate-700 p-5 rounded-xl space-y-2">
-                <span class="text-xs text-slate-400 uppercase">Kata Jawabannya Adalah:</span>
-                <div id="result-word" class="text-3xl font-black text-amber-400 tracking-widest"></div>
-                <p id="result-fact" class="text-sm text-slate-300 pt-2 border-t border-slate-800"></p>
+            <!-- INFO BAR ATAS (TEMA & TIMER) -->
+            <div class="bg-slate-100 px-5 py-2.5 flex justify-between items-center border-b-2 border-slate-200">
+                <span id="game-theme-badge" class="bg-indigo-100 text-indigo-700 text-xs md:text-sm font-bold px-3 py-1 rounded-full">
+                    Tema
+                </span>
+                <div class="flex items-center gap-1.5 bg-white px-3 py-1 rounded-full border-2 border-amber-300 shadow-sm">
+                    <span>⏰</span>
+                    <span id="game-timer" class="font-bold text-base md:text-lg text-amber-600">05:00</span>
+                </div>
             </div>
 
-            <button onclick="location.reload()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl transition">
+            <!-- PANGGUNG VISUAL 2D: 2 KARAKTER DUDUK DI BEAN BAG + MEJA TENGAH -->
+            <div class="relative w-full h-72 md:h-80 bg-gradient-to-b from-amber-100 via-orange-50 to-amber-200 overflow-hidden select-none border-b-4 border-amber-300">
+                
+                <!-- Dekorasi Ruang Kelas / Belajar (Jendela & Papan Tulis Mini) -->
+                <div class="absolute top-3 left-1/2 -translate-x-1/2 bg-emerald-800 border-4 border-amber-700 rounded-xl px-5 py-2 shadow-md text-center min-w-[230px] z-10">
+                    <span id="board-label" class="text-[10px] uppercase tracking-wider text-emerald-200 block">Kata Rahasia</span>
+                    <div id="board-word-display" class="text-xl md:text-2xl font-extrabold text-white tracking-widest mt-0.5">
+                        _ Y _ _
+                    </div>
+                </div>
+
+                <!-- Lantai Ruang Bermain (Grid Perspektif Halus) -->
+                <div class="absolute bottom-0 w-full h-28 bg-amber-300/60 border-t-2 border-amber-400/50"></div>
+
+                <!-- BALON OBROLAN PEMAIN 2 (KIRI - TEBAKAN) -->
+                <div id="bubble-p2" class="hidden absolute top-20 left-6 md:left-14 z-20 max-w-[160px]">
+                    <div class="bg-white border-2 border-sky-400 text-sky-900 text-xs md:text-sm font-bold px-3.5 py-2 rounded-2xl shadow-lg text-center break-words">
+                        <span id="bubble-p2-text">...</span>
+                    </div>
+                    <div class="w-3 h-3 bg-white border-r-2 border-b-2 border-sky-400 rotate-45 mx-auto -mt-1.5"></div>
+                </div>
+
+                <!-- BALON OBROLAN PEMAIN 1 (KANAN - JAWABAN IYA / TIDAK / BISA JADI) -->
+                <div id="bubble-p1" class="hidden absolute top-20 right-6 md:right-14 z-20 min-w-[110px]">
+                    <div id="bubble-p1-box" class="bg-emerald-500 border-2 border-white text-white text-sm md:text-base font-extrabold px-4 py-2 rounded-2xl shadow-lg text-center">
+                        <span id="bubble-p1-text">IYA!</span>
+                    </div>
+                    <div id="bubble-p1-tail" class="w-3 h-3 bg-emerald-500 border-r-2 border-b-2 border-white rotate-45 mx-auto -mt-1.5"></div>
+                </div>
+
+                <!-- SVG SCENE: DUA KARAKTER DUDUK BERHADAPAN + MEJA -->
+                <svg viewBox="0 0 600 260" class="w-full h-full absolute bottom-0 left-0">
+                    <!-- Bayangan Lantai -->
+                    <ellipse cx="155" cy="232" rx="75" ry="16" fill="rgba(146, 64, 14, 0.2)" />
+                    <ellipse cx="445" cy="232" rx="75" ry="16" fill="rgba(146, 64, 14, 0.2)" />
+                    <ellipse cx="300" cy="238" rx="68" ry="14" fill="rgba(146, 64, 14, 0.25)" />
+
+                    <!-- ================= KARAKTER KIRI (PEMAIN 2 - PENEBak) ================= -->
+                    <g class="char-idle">
+                        <!-- Bean Bag Biru -->
+                        <path d="M95 220 C85 180, 110 150, 145 155 C175 160, 200 185, 195 220 C190 235, 105 235, 95 220 Z" fill="#0284c7" stroke="#0369a1" stroke-width="3"/>
+                        <path d="M105 215 C100 190, 120 175, 150 180 C175 185, 188 200, 185 218 Z" fill="#38bdf8" />
+                        
+                        <!-- Kaki Karakter Kiri (Duduk menghadap kanan) -->
+                        <rect x="165" y="192" width="38" height="14" rx="7" fill="#1e293b" />
+                        <rect x="192" y="190" width="16" height="18" rx="6" fill="#f97316" />
+
+                        <!-- Badan Karakter Kiri -->
+                        <rect x="128" y="152" width="42" height="46" rx="16" fill="#3b82f6" stroke="#1d4ed8" stroke-width="2.5"/>
+                        <!-- Tangan -->
+                        <path d="M152 165 L182 178" stroke="#fde047" stroke-width="11" stroke-linecap="round"/>
+
+                        <!-- Kepala Karakter Kiri -->
+                        <circle cx="150" cy="126" r="26" fill="#fed7aa" stroke="#fdba74" stroke-width="2"/>
+                        <!-- Topi / Rambut Lucu -->
+                        <path d="M124 122 C124 100, 176 100, 176 122 Z" fill="#ef4444"/>
+                        <rect x="148" y="114" width="36" height="7" rx="3.5" fill="#dc2626"/>
+                        <!-- Mata (Menghadap kanan) -->
+                        <circle cx="163" cy="126" r="3.5" fill="#1e293b"/>
+                        <circle cx="164" cy="125" r="1.2" fill="#ffffff"/>
+                        <!-- Senyum -->
+                        <path d="M160 137 Q166 141 170 136" fill="none" stroke="#9a3412" stroke-width="2.5" stroke-linecap="round"/>
+                    </g>
+
+                    <!-- Label Peran Kiri -->
+                    <rect x="108" y="236" width="94" height="20" rx="10" fill="#0369a1"/>
+                    <text x="155" y="250" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="bold">Penebak (P2)</text>
+
+                    <!-- ================= MEJA KAYU KECIL DI TENGAH ================= -->
+                    <g>
+                        <!-- Kaki Meja -->
+                        <rect x="255" y="192" width="10" height="44" rx="4" fill="#78350f"/>
+                        <rect x="335" y="192" width="10" height="44" rx="4" fill="#78350f"/>
+                        <!-- Daun Meja -->
+                        <ellipse cx="300" cy="190" rx="58" ry="16" fill="#b45309" stroke="#78350f" stroke-width="3"/>
+                        <ellipse cx="300" cy="187" rx="52" ry="12" fill="#d97706"/>
+                        <!-- Buku & Pensil di atas meja -->
+                        <rect x="282" y="180" width="26" height="12" rx="2" fill="#fef08a" stroke="#ca8a04" stroke-width="1.5" transform="rotate(-8 295 186)"/>
+                        <line x1="314" y1="188" x2="328" y2="181" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+                    </g>
+
+                    <!-- ================= KARAKTER KANAN (PEMAIN 1 - INSTRUKTUR) ================= -->
+                    <g class="char-idle" style="animation-delay: 0.6s;">
+                        <!-- Bean Bag Hijau / Pink -->
+                        <path d="M505 220 C515 180, 490 150, 455 155 C425 160, 400 185, 405 220 C410 235, 495 235, 505 220 Z" fill="#059669" stroke="#047857" stroke-width="3"/>
+                        <path d="M495 215 C500 190, 480 175, 450 180 C425 185, 412 200, 415 218 Z" fill="#34d399" />
+
+                        <!-- Kaki Karakter Kanan (Duduk menghadap kiri) -->
+                        <rect x="397" y="192" width="38" height="14" rx="7" fill="#1e293b" />
+                        <rect x="392" y="190" width="16" height="18" rx="6" fill="#ec4899" />
+
+                        <!-- Badan Karakter Kanan -->
+                        <rect x="430" y="152" width="42" height="46" rx="16" fill="#10b981" stroke="#047857" stroke-width="2.5"/>
+                        <!-- Tangan -->
+                        <path d="M448 165 L418 178" stroke="#fed7aa" stroke-width="11" stroke-linecap="round"/>
+
+                        <!-- Kepala Karakter Kanan -->
+                        <circle cx="450" cy="126" r="26" fill="#fed7aa" stroke="#fdba74" stroke-width="2"/>
+                        <!-- Rambut / Pita Lucu -->
+                        <path d="M424 124 C422 96, 478 96, 476 124 C470 112, 430 112, 424 124 Z" fill="#7c2d12"/>
+                        <circle cx="468" cy="106" r="7" fill="#f43f5e"/>
+                        <!-- Kacamata Pintar -->
+                        <circle cx="437" cy="126" r="6" fill="none" stroke="#1e293b" stroke-width="2"/>
+                        <circle cx="437" cy="126" r="3" fill="#1e293b"/>
+                        <!-- Senyum -->
+                        <path d="M440 137 Q434 141 430 136" fill="none" stroke="#9a3412" stroke-width="2.5" stroke-linecap="round"/>
+                    </g>
+
+                    <!-- Label Peran Kanan -->
+                    <rect x="395" y="236" width="100" height="20" rx="10" fill="#047857"/>
+                    <text x="445" y="250" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="bold">Instruktur (P1)</text>
+                </svg>
+            </div>
+
+            <!-- AREA KONTROL BAWAH (SESUAI PERAN MASING-MASING PEMAIN) -->
+            <div class="p-5 bg-white">
+                
+                <!-- KONTROL PLAYER 1 (TOMBOL IYA / TIDAK / BISA JADI) -->
+                <div id="panel-p1" class="hidden space-y-3">
+                    <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 text-center">
+                        <p class="text-xs text-emerald-800" id="p1-fact-preview">Fakta edukasi akan muncul di sini.</p>
+                    </div>
+                    <p class="text-center text-xs font-semibold text-slate-500">
+                        Jawab pertanyaan Pemain 2 dengan menekan salah satu tombol di bawah:
+                    </p>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button onclick="sendSignal('IYA')" class="bg-emerald-500 hover:bg-emerald-600 active:translate-y-0.5 text-white font-extrabold py-3.5 rounded-2xl shadow-md border-b-4 border-emerald-700 text-base md:text-lg transition">
+                            Iya
+                        </button>
+                        <button onclick="sendSignal('TIDAK')" class="bg-rose-500 hover:bg-rose-600 active:translate-y-0.5 text-white font-extrabold py-3.5 rounded-2xl shadow-md border-b-4 border-rose-700 text-base md:text-lg transition">
+                            Tidak
+                        </button>
+                        <button onclick="sendSignal('BISA JADI')" class="bg-amber-400 hover:bg-amber-500 active:translate-y-0.5 text-amber-950 font-extrabold py-3.5 rounded-2xl shadow-md border-b-4 border-amber-600 text-base md:text-lg transition">
+                            Bisa Jadi
+                        </button>
+                    </div>
+                </div>
+
+                <!-- KONTROL PLAYER 2 (INPUT JAWABAN SAMPAI BENAR) -->
+                <div id="panel-p2" class="hidden space-y-2">
+                    <form id="form-guess" class="space-y-2">
+                        <label class="block text-xs font-bold text-slate-600">
+                            Ketik tebakanmu di bawah ini (bebas huruf besar atau kecil):
+                        </label>
+                        <div class="flex gap-2">
+                            <input type="text" id="input-guess" autocomplete="off" placeholder="Ketik jawaban di sini..." 
+                                class="flex-1 bg-sky-50 border-2 border-sky-300 rounded-xl px-4 py-3 font-bold text-slate-800 focus:outline-none focus:border-sky-500">
+                            <button type="submit" class="bg-sky-500 hover:bg-sky-600 active:translate-y-0.5 text-white font-extrabold px-6 rounded-xl shadow-md border-b-4 border-sky-700 transition">
+                                Tebak!
+                            </button>
+                        </div>
+                    </form>
+                    <p id="p2-feedback" class="text-xs font-bold text-rose-500 h-4 text-center"></p>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- SCREEN 4: HASIL AKHIR (MENANG / KALAH BERSAMA) -->
+        <div id="screen-result" class="hidden p-7 text-center space-y-5">
+            <div id="result-icon" class="text-5xl">🎉</div>
+            <h2 id="result-title" class="text-2xl md:text-3xl font-extrabold text-slate-800"></h2>
+            
+            <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-5 space-y-2">
+                <span class="text-xs font-bold uppercase text-amber-700">Kata Jawabannya Adalah:</span>
+                <div id="result-word" class="text-3xl font-extrabold text-amber-600 tracking-widest"></div>
+                <p id="result-fact" class="text-sm text-slate-700 pt-2 border-t border-amber-200"></p>
+            </div>
+
+            <button onclick="location.reload()" class="w-full bg-indigo-500 hover:bg-indigo-600 active:translate-y-0.5 text-white font-bold py-3.5 rounded-2xl shadow-md border-b-4 border-indigo-700 transition">
                 Main Lagi (Match Baru)
             </button>
         </div>
+
     </div>
 
     <script>
@@ -179,146 +298,146 @@
                 { word: "AYAM", fact: "Unggas darat yang berkembang biak dengan cara bertelur (ovipar)." },
                 { word: "KATAK", fact: "Hewan amfibi yang mengalami metamorfosis sempurna dari berudu hingga dewasa." },
                 { word: "PAUS", fact: "Mamalia laut terbesar yang bernapas menggunakan paru-paru, bukan insang." },
-                { word: "BUNGLON", fact: "Reptil yang mampu mengubah warna kulitnya (mimikri) untuk mengelabui musuh." },
-                { word: "KELELAWAR", fact: "Satu-satunya mamalia yang bisa terbang dan mencari makan di malam hari (nokturnal)." }
+                { word: "BUNGLON", fact: "Reptil yang mengubah warna kulitnya (mimikri) untuk mengelabui musuh." },
+                { word: "KELELAWAR", fact: "Satu-satunya mamalia yang bisa terbang dan aktif di malam hari (nokturnal)." }
             ],
             "2. Biologi - Tumbuhan": [
-                { word: "KAKTUS", fact: "Tumbuhan xerofit yang hidup di daerah kering dengan daun berbentuk duri untuk mengurangi penguapan." },
-                { word: "TERATAI", fact: "Tumbuhan air dengan daun lebar dan tipis untuk mempercepat penguapan air." },
-                { word: "MANGGA", fact: "Tumbuhan berbiji tertutup (angiospermae) yang memiliki akar tunggang dan batang berkambium." },
-                { word: "BAMBU", fact: "Tumbuhan berbatang beruas yang melindungi diri menggunakan bulu-bulu halus (gelugut) yang gatal." },
+                { word: "KAKTUS", fact: "Tumbuhan xerofit di daerah kering dengan daun berbentuk duri untuk mengurangi penguapan." },
+                { word: "TERATAI", fact: "Tumbuhan air berdaun lebar dan tipis untuk mempercepat penguapan air." },
+                { word: "MANGGA", fact: "Tumbuhan berbiji tertutup dengan akar tunggang dan batang berkambium." },
+                { word: "BAMBU", fact: "Tumbuhan berbatang beruas yang melindungi diri dengan bulu halus gatal (gelugut)." },
                 { word: "ANGGREK", fact: "Tumbuhan epifit yang menempel pada pohon lain tanpa merugikan inangnya." }
             ],
             "3. IPA - Tubuh Manusia": [
-                { word: "JANTUNG", fact: "Organ vital manusia yang berfungsi memompa darah ke seluruh tubuh." },
-                { word: "LAMBUNG", fact: "Organ pencernaan yang menghasilkan asam klorida (HCl) untuk membunuh kuman pada makanan." },
+                { word: "JANTUNG", fact: "Organ vital manusia yang memompa darah ke seluruh tubuh." },
+                { word: "LAMBUNG", fact: "Organ pencernaan yang menghasilkan asam klorida untuk membunuh kuman makanan." },
                 { word: "GINJAL", fact: "Sepasang organ ekskresi yang menyaring darah dan menghasilkan urine." },
-                { word: "RETINA", fact: "Lapisan peka cahaya di bagian belakang mata tempat terbentuknya bayangan benda." },
-                { word: "TULANG", fact: "Alat gerak pasif pada manusia yang juga berfungsi melindungi organ dalam." }
+                { word: "RETINA", fact: "Lapisan peka cahaya di belakang mata tempat terbentuknya bayangan benda." },
+                { word: "TULANG", fact: "Alat gerak pasif manusia yang juga melindungi organ dalam." }
             ],
             "4. IPA - Tata Surya & Antariksa": [
-                { word: "MATAHARI", fact: "Bintang yang menjadi pusat tata surya kita dan sumber energi utama di Bumi." },
-                { word: "SATURNUS", fact: "Planet keenam dari Matahari yang terkenal memiliki cincin es dan debu yang indah." },
-                { word: "GERHANA", fact: "Peristiwa tertutupnya cahaya Matahari oleh Bulan atau tertutupnya Bulan oleh bayangan Bumi." },
-                { word: "KOMET", fact: "Benda langit yang mengelilingi Matahari dengan orbit sangat lonjong dan memiliki ekor bercahaya." },
-                { word: "METEOR", fact: "Benda langit yang jatuh memasuki atmosfer Bumi dan habis terbakar sehingga tampak seperti bintang jatuh." }
+                { word: "MATAHARI", fact: "Bintang pusat tata surya kita sekaligus sumber energi utama di Bumi." },
+                { word: "SATURNUS", fact: "Planet keenam dari Matahari yang terkenal memiliki cincin es dan debu." },
+                { word: "GERHANA", fact: "Peristiwa tertutupnya cahaya Matahari oleh Bulan atau Bulan oleh bayangan Bumi." },
+                { word: "KOMET", fact: "Benda langit berekor bercahaya yang mengelilingi Matahari dengan orbit lonjong." },
+                { word: "METEOR", fact: "Benda langit yang jatuh ke atmosfer Bumi dan habis terbakar seperti bintang jatuh." }
             ],
             "5. IPA - Energi & Gaya": [
-                { word: "GRAVITASI", fact: "Gaya tarik Bumi yang menyebabkan semua benda selalu jatuh ke bawah." },
-                { word: "MAGNET", fact: "Benda yang memiliki dua kutub (Utara dan Selatan) serta mampu menarik benda berbahan besi atau baja." },
-                { word: "LISTRIK", fact: "Energi yang timbul akibat aliran muatan elektron melalui penghantar." },
-                { word: "GESEK", fact: "Gaya yang timbul akibat dua permukaan benda yang saling bersentuhan dan menghambat gerak." },
-                { word: "SURYA", fact: "Energi panas dan cahaya yang berasal dari Matahari dan dapat diubah menjadi listrik melalui panel." }
+                { word: "GRAVITASI", fact: "Gaya tarik Bumi yang membuat semua benda selalu jatuh ke bawah." },
+                { word: "MAGNET", fact: "Benda berkutub Utara dan Selatan yang mampu menarik besi atau baja." },
+                { word: "LISTRIK", fact: "Energi yang timbul akibat aliran muatan listrik melalui penghantar." },
+                { word: "GESEK", fact: "Gaya yang timbul saat dua permukaan benda bersentuhan dan menghambat gerak." },
+                { word: "SURYA", fact: "Energi panas dan cahaya dari Matahari yang dapat diubah menjadi listrik." }
             ],
             "6. IPA - Wujud Benda": [
-                { word: "MENYUBLIM", fact: "Perubahan wujud benda padat langsung menjadi gas, contohnya pada kapur barus." },
-                { word: "MENGUAP", fact: "Perubahan wujud benda cair menjadi gas karena menerima kalor (panas)." },
-                { word: "MEMBEKU", fact: "Perubahan wujud benda cair menjadi padat karena melepaskan kalor (didinginkan)." },
-                { word: "MENGEMBUN", fact: "Perubahan wujud gas menjadi titik-titik air, seperti embun di pagi hari." },
-                { word: "MENCAIR", fact: "Perubahan wujud benda padat menjadi cair saat terkena panas, seperti es batu." }
+                { word: "MENYUBLIM", fact: "Perubahan wujud padat langsung menjadi gas, seperti kapur barus." },
+                { word: "MENGUAP", fact: "Perubahan wujud cair menjadi gas karena menerima panas." },
+                { word: "MEMBEKU", fact: "Perubahan wujud cair menjadi padat karena didinginkan." },
+                { word: "MENGEMBUN", fact: "Perubahan wujud gas menjadi titik-titik air di pagi hari." },
+                { word: "MENCAIR", fact: "Perubahan wujud padat menjadi cair saat terkena panas, seperti es batu." }
             ],
             "7. Bahasa Inggris (Vocabulary)": [
-                { word: "ELEPHANT", fact: "Bahasa Inggris dari Gajah, mamalia darat terbesar yang memiliki belalai." },
-                { word: "TEACHER", fact: "Bahasa Inggris dari Guru, orang yang mengajar dan mendidik siswa di sekolah." },
+                { word: "ELEPHANT", fact: "Bahasa Inggris dari Gajah, mamalia darat terbesar yang berbelalai." },
+                { word: "TEACHER", fact: "Bahasa Inggris dari Guru, pendidik siswa di sekolah." },
                 { word: "LIBRARY", fact: "Bahasa Inggris dari Perpustakaan, tempat membaca dan meminjam buku." },
                 { word: "MOUNTAIN", fact: "Bahasa Inggris dari Gunung, permukaan bumi yang menjulang tinggi." },
-                { word: "BREAKFAST", fact: "Bahasa Inggris dari Sarapan, waktu makan di pagi hari sebelum beraktivitas." }
+                { word: "BREAKFAST", fact: "Bahasa Inggris dari Sarapan, makan pagi sebelum beraktivitas." }
             ],
             "8. Bahasa Arab (Kosakata Dasar)": [
-                { word: "KITABUN", fact: "Bahasa Arab (transliterasi) yang artinya Buku." },
-                { word: "QALAMUN", fact: "Bahasa Arab (transliterasi) yang artinya Pena atau Pulpen." },
-                { word: "MADRASAH", fact: "Bahasa Arab yang artinya Sekolah atau tempat belajar." },
-                { word: "BAITUN", fact: "Bahasa Arab (transliterasi) yang artinya Rumah tempat tinggal." },
-                { word: "SYAMSUN", fact: "Bahasa Arab (transliterasi) yang artinya Matahari." }
+                { word: "KITABUN", fact: "Kosakata bahasa Arab (transliterasi) yang berarti Buku." },
+                { word: "QALAMUN", fact: "Kosakata bahasa Arab (transliterasi) yang berarti Pena atau Pulpen." },
+                { word: "MADRASAH", fact: "Kosakata bahasa Arab yang berarti Sekolah atau tempat belajar." },
+                { word: "BAITUN", fact: "Kosakata bahasa Arab (transliterasi) yang berarti Rumah." },
+                { word: "SYAMSUN", fact: "Kosakata bahasa Arab (transliterasi) yang berarti Matahari." }
             ],
             "9. Bahasa Indonesia - Tata Bahasa": [
-                { word: "SINONIM", fact: "Dua kata atau lebih yang memiliki bentuk berbeda tetapi maknanya sama atau mirip." },
-                { word: "ANTONIM", fact: "Kata yang maknanya berlawanan dengan kata lain, seperti 'panas' dan 'dingin'." },
-                { word: "PANTUN", fact: "Puisi lama Melayu yang bersajak a-b-a-b, terdiri atas sampiran dan isi." },
-                { word: "PREDIKAT", fact: "Unsur kalimat yang menjelaskan tindakan atau keadaan yang dilakukan oleh subjek." },
-                { word: "DONGENG", fact: "Cerita khayalan atau fiksi turun-temurun yang mengandung pesan moral." }
+                { word: "SINONIM", fact: "Kata-kata yang berbeda bentuk tetapi memiliki makna yang sama atau mirip." },
+                { word: "ANTONIM", fact: "Kata yang maknanya berlawanan dengan kata lain, seperti 'tinggi' dan 'rendah'." },
+                { word: "PANTUN", fact: "Puisi lama bersajak a-b-a-b yang terdiri dari sampiran dan isi." },
+                { word: "PREDIKAT", fact: "Unsur kalimat yang menjelaskan tindakan atau keadaan subjek." },
+                { word: "DONGENG", fact: "Cerita khayalan turun-temurun yang mengandung pesan moral." }
             ],
             "10. Matematika - Bangun Datar & Ruang": [
-                { word: "SEGITIGA", fact: "Bangun datar yang memiliki 3 sisi dan jumlah seluruh sudut dalamnya 180 derajat." },
-                { word: "KUBUS", fact: "Bangun ruang yang dibatasi oleh 6 sisi berbentuk persegi yang sama luas." },
-                { word: "LINGKARAN", fact: "Bangun datar melengkung yang memiliki simetri lipat dan simetri putar tak terhingga." },
+                { word: "SEGITIGA", fact: "Bangun datar bersisi 3 dengan jumlah sudut dalam 180 derajat." },
+                { word: "KUBUS", fact: "Bangun ruang yang dibatasi 6 sisi berbentuk persegi sama luas." },
+                { word: "LINGKARAN", fact: "Bangun datar melengkung dengan simetri putar tak terhingga." },
                 { word: "TRAPESIUM", fact: "Bangun datar segiempat yang memiliki tepat sepasang sisi sejajar." },
-                { word: "KERUCUT", fact: "Bangun ruang sisi lengkung yang memiliki alas berbentuk lingkaran dan satu titik puncak." }
+                { word: "KERUCUT", fact: "Bangun ruang beralas lingkaran dan memiliki satu titik puncak." }
             ],
             "11. Matematika - Bilangan & Operasi": [
-                { word: "PRIMA", fact: "Bilangan asli lebih dari 1 yang hanya memiliki dua faktor pembagi, yaitu 1 dan dirinya sendiri." },
-                { word: "PECAHAN", fact: "Bilangan yang dinyatakan dalam bentuk a/b dengan a sebagai pembilang dan b sebagai penyebut." },
-                { word: "PERSEN", fact: "Angka atau perbandingan untuk menyatakan pecahan dari seratus (%)." },
-                { word: "DIAGONAL", fact: "Garis lurus yang menghubungkan dua titik sudut yang tidak bersebelahan pada segi banyak." },
+                { word: "PRIMA", fact: "Bilangan lebih dari 1 yang hanya habis dibagi 1 dan dirinya sendiri." },
+                { word: "PECAHAN", fact: "Bilangan berbentuk a/b dengan a sebagai pembilang dan b penyebut." },
+                { word: "PERSEN", fact: "Perbandingan untuk menyatakan pecahan dari seratus (%)." },
+                { word: "DIAGONAL", fact: "Garis yang menghubungkan dua titik sudut tidak bersebelahan." },
                 { word: "KELILING", fact: "Jumlah panjang seluruh sisi yang membatasi suatu bangun datar." }
             ],
             "12. IPS - Geografi Indonesia": [
-                { word: "KHATULISTIWA", fact: "Garis khayal yang membagi Bumi menjadi belahan utara dan selatan, melintasi Kota Pontianak." },
-                { word: "SUMATERA", fact: "Pulau terbesar keenam di dunia yang terletak di bagian barat Indonesia." },
+                { word: "KHATULISTIWA", fact: "Garis khayal pembagi Bumi utara-selatan yang melintasi Kota Pontianak." },
+                { word: "SUMATERA", fact: "Pulau besar di bagian barat Indonesia." },
                 { word: "BOROBUDUR", fact: "Candi Buddha terbesar di dunia yang terletak di Magelang, Jawa Tengah." },
-                { word: "SAMUDRA", fact: "Lautan yang sangat luas yang memisahkan antarbenua di permukaan Bumi." },
-                { word: "DELTA", fact: "Endapan tanah berbentuk segitiga di muara sungai tempat aliran sungai bertemu laut." }
+                { word: "SAMUDRA", fact: "Lautan sangat luas yang memisahkan antarbenua." },
+                { word: "DELTA", fact: "Endapan tanah berbentuk segitiga di muara sungai." }
             ],
             "13. IPS - Sejarah & Pahlawan": [
-                { word: "PROKLAMASI", fact: "Pernyataan resmi kemerdekaan bangsa Indonesia pada tanggal 17 Agustus 1945." },
-                { word: "SOEKARNO", fact: "Presiden pertama Republik Indonesia sekaligus proklamator kemerdekaan." },
-                { word: "KARTINI", fact: "Pahlawan nasional pelopor kebangkitan perempuan pribumi asal Jepara." },
-                { word: "MAJAPAHIT", fact: "Kerajaan maritim besar di Nusantara yang terkenal dengan Sumpah Palapa Patih Gajah Mada." },
-                { word: "DIPONEGORO", fact: "Pangeran dari Yogyakarta yang memimpin Perang Jawa melawan Belanda tahun 1825–1830." }
+                { word: "PROKLAMASI", fact: "Pernyataan resmi kemerdekaan Indonesia pada 17 Agustus 1945." },
+                { word: "SOEKARNO", fact: "Presiden pertama RI sekaligus proklamator kemerdekaan Indonesia." },
+                { word: "KARTINI", fact: "Pahlawan nasional pelopor emansipasi perempuan asal Jepara." },
+                { word: "MAJAPAHIT", fact: "Kerajaan besar Nusantara dengan Sumpah Palapa Patih Gajah Mada." },
+                { word: "DIPONEGORO", fact: "Pangeran Yogyakarta pemimpin Perang Jawa (1825–1830)." }
             ],
             "14. IPS - Ekonomi Dasar": [
-                { word: "KOPERASI", fact: "Badan usaha yang beranggotakan orang-orang dengan prinsip kekeluargaan dan gotong royong." },
-                { word: "BARTER", fact: "Sistem tukar-menukar barang secara langsung sebelum manusia mengenal uang." },
-                { word: "EKSPOR", fact: "Kegiatan menjual barang atau jasa dari dalam negeri ke luar negeri." },
-                { word: "KONSUMEN", fact: "Orang atau pihak yang memakai atau menghabiskan nilai guna suatu barang dan jasa." },
-                { word: "PRODUKSI", fact: "Kegiatan menghasilkan atau menambah nilai guna suatu barang dan jasa." }
+                { word: "KOPERASI", fact: "Badan usaha bersama berasaskan kekeluargaan dan gotong royong." },
+                { word: "BARTER", fact: "Sistem tukar-menukar barang sebelum manusia mengenal uang." },
+                { word: "EKSPOR", fact: "Kegiatan menjual barang dari dalam negeri ke luar negeri." },
+                { word: "KONSUMEN", fact: "Pihak yang memakai atau menghabiskan nilai guna barang dan jasa." },
+                { word: "PRODUKSI", fact: "Kegiatan menghasilkan atau menambah nilai guna barang dan jasa." }
             ],
             "15. PPKn - Pancasila & Negara": [
-                { word: "GARUDA", fact: "Burung mitologi yang menjadi lambang negara Indonesia dengan semboyan Bhinneka Tunggal Ika." },
-                { word: "MUSYAWARAH", fact: "Pembahasan bersama untuk mencapai keputusan mufakat dalam menyelesaikan masalah." },
-                { word: "TOLERANSI", fact: "Sikap saling menghormati dan menghargai perbedaan antarumat beragama, suku, dan budaya." },
-                { word: "KONSTITUSI", fact: "Hukum dasar tertulis suatu negara, di Indonesia yaitu UUD 1945." },
-                { word: "KEWAJIBAN", fact: "Segala sesuatu yang harus dilaksanakan dengan penuh tanggung jawab sebelum menuntut hak." }
+                { word: "GARUDA", fact: "Burung lambang negara Indonesia dengan semboyan Bhinneka Tunggal Ika." },
+                { word: "MUSYAWARAH", fact: "Pembahasan bersama untuk mencapai keputusan mufakat." },
+                { word: "TOLERANSI", fact: "Sikap saling menghormati perbedaan agama, suku, dan budaya." },
+                { word: "KONSTITUSI", fact: "Hukum dasar tertulis suatu negara (UUD 1945 di Indonesia)." },
+                { word: "KEWAJIBAN", fact: "Sesuatu yang harus dilaksanakan dengan tanggung jawab sebelum menuntut hak." }
             ],
             "16. Seni Budaya & Prakarya (SBdP)": [
-                { word: "ANGKLUNG", fact: "Alat musik tradisional asal Jawa Barat yang terbuat dari bambu dan dimainkan dengan digoyangkan." },
-                { word: "BATIK", fact: "Kain bergambar khas Indonesia yang pembuatannya menggunakan lilin malam dan canting." },
-                { word: "MOZAIK", fact: "Karya seni rupa yang dibuat dengan menempelkan kepingan bahan kecil seperti kaca atau keramik." },
-                { word: "GAMELAN", fact: "Ansambel musik tradisional Jawa dan Bali yang didominasi alat musik pukul seperti gong dan kenong." },
-                { word: "PATUNG", fact: "Karya seni rupa tiga dimensi yang memiliki panjang, lebar, dan tinggi sehingga bisa dilihat dari segala arah." }
+                { word: "ANGKLUNG", fact: "Alat musik bambu tradisional asal Jawa Barat yang dimainkan dengan digoyang." },
+                { word: "BATIK", fact: "Kain bergambar khas Indonesia yang dibuat dengan lilin malam dan canting." },
+                { word: "MOZAIK", fact: "Karya seni rupa dari tempelan kepingan bahan kecil seperti kaca atau keramik." },
+                { word: "GAMELAN", fact: "Ansambel musik tradisional Jawa dan Bali yang didominasi alat musik pukul." },
+                { word: "PATUNG", fact: "Karya seni rupa tiga dimensi yang bisa dilihat dari segala arah." }
             ],
             "17. PJOK - Olahraga & Kesehatan": [
-                { word: "ATLETIK", fact: "Cabang olahraga tertua yang meliputi gerakan dasar jalan, lari, lompat, dan lempar." },
-                { word: "BULUTANGKIS", fact: "Olahraga raket yang menggunakan kok (shuttlecock) dan sangat berprestasi bagi Indonesia." },
-                { word: "PEMANASAN", fact: "Gerakan ringan sebelum berolahraga untuk menyiapkan otot dan mencegah cedera." },
-                { word: "VITAMIN", fact: "Zat gizi mikro yang sangat dibutuhkan tubuh untuk menjaga daya tahan dari penyakit." },
-                { word: "ESTAFET", fact: "Lomba lari beregu secara bersambung dengan memindahkan tongkat dari pelari satu ke berikutnya." }
+                { word: "ATLETIK", fact: "Cabang olahraga jalan, lari, lompat, dan lempar." },
+                { word: "BULUTANGKIS", fact: "Olahraga raket dengan kok (shuttlecock) yang populer di Indonesia." },
+                { word: "PEMANASAN", fact: "Gerakan ringan sebelum olahraga untuk menyiapkan otot dan mencegah cedera." },
+                { word: "VITAMIN", fact: "Zat gizi mikro penting untuk menjaga daya tahan tubuh." },
+                { word: "ESTAFET", fact: "Lomba lari beregu sambung dengan memindahkan tongkat." }
             ],
             "18. TIK - Komputer & Internet": [
-                { word: "KEYBOARD", fact: "Perangkat keras komputer berisi tombol huruf dan angka untuk mengetik data." },
-                { word: "MONITOR", fact: "Perangkat keras keluaran (output) yang menampilkan tampilan visual dari komputer." },
-                { word: "INTERNET", fact: "Jaringan komunikasi global yang menghubungkan jutaan komputer di seluruh dunia." },
-                { word: "APLIKASI", fact: "Perangkat lunak (software) yang dirancang untuk membantu tugas tertentu pengguna." },
-                { word: "PRINTER", fact: "Perangkat keras yang berfungsi mencetak dokumen atau gambar dari komputer ke kertas." }
+                { word: "KEYBOARD", fact: "Perangkat keras komputer berisi tombol huruf dan angka untuk mengetik." },
+                { word: "MONITOR", fact: "Layar keluaran komputer yang menampilkan tampilan visual." },
+                { word: "INTERNET", fact: "Jaringan komunikasi global yang menghubungkan komputer di seluruh dunia." },
+                { word: "APLIKASI", fact: "Perangkat lunak yang dirancang untuk tugas tertentu pada komputer/HP." },
+                { word: "PRINTER", fact: "Perangkat keras untuk mencetak dokumen atau gambar ke kertas." }
             ],
             "19. Pendidikan Agama - Akhlak & Ibadah": [
                 { word: "JUJUR", fact: "Perilaku berkata dan bertindak sesuai kenyataan tanpa berbohong." },
-                { word: "AMANAH", fact: "Sifat dapat dipercaya dalam menjaga titipan atau menjalankan tugas yang diberikan." },
-                { word: "SEDEKAH", fact: "Pemberian sesuatu secara sukarela kepada orang lain yang membutuhkan demi kebaikan." },
-                { word: "SYUKUR", fact: "Sikap berterima kasih atas segala nikmat dan karunia yang telah diberikan Tuhan." },
-                { word: "IKHLAS", fact: "Melakukan perbuatan baik dengan tulus tanpa mengharapkan pujian atau imbalan manusia." }
+                { word: "AMANAH", fact: "Sifat dapat dipercaya dalam menjaga titipan atau menjalankan tugas." },
+                { word: "SEDEKAH", fact: "Pemberian sukarela kepada orang yang membutuhkan demi kebaikan." },
+                { word: "SYUKUR", fact: "Sikap berterima kasih atas segala nikmat dan karunia Tuhan." },
+                { word: "IKHLAS", fact: "Berbuat baik dengan tulus tanpa mengharapkan pujian manusia." }
             ],
             "20. Pengetahuan Umum & Lingkungan": [
-                { word: "DAURULANG", fact: "Proses mengolah kembali sampah atau barang bekas menjadi produk baru yang bermanfaat (tanpa spasi)." },
-                { word: "REBOISASI", fact: "Penanaman kembali hutan yang telah gundul untuk mencegah banjir dan tanah longsor." },
-                { word: "KOMPAS", fact: "Alat navigasi penunjuk arah mata angin yang selalu mengarah ke Utara dan Selatan." },
-                { word: "TERMOMETER", fact: "Alat yang digunakan untuk mengukur suhu suatu benda atau tubuh." },
-                { word: "GEMPA", fact: "Getaran yang terjadi di permukaan bumi akibat pergeseran lempeng tektonik atau aktivitas gunung berapi." }
+                { word: "DAURULANG", fact: "Mengolah kembali sampah atau barang bekas menjadi produk baru (tanpa spasi)." },
+                { word: "REBOISASI", fact: "Penanaman kembali hutan gundul untuk mencegah banjir dan longsor." },
+                { word: "KOMPAS", fact: "Alat penunjuk arah mata angin yang selalu mengarah ke Utara dan Selatan." },
+                { word: "TERMOMETER", fact: "Alat untuk mengukur suhu benda atau tubuh." },
+                { word: "GEMPA", fact: "Getaran permukaan bumi akibat pergeseran lempeng atau aktivitas gunung api." }
             ]
         };
 
         // ==========================================
-        // 2. VARIABEL STATE GAME & PEERJS
+        // 2. STATE & PEERJS SETUP
         // ==========================================
         let peer = null;
         let conn = null;
@@ -330,7 +449,7 @@
         let timeLeft = 300; // 5 menit = 300 detik
         let gameEnded = false;
 
-        // Populate Dropdown 20 Tema
+        // Isi Dropdown 20 Tema
         const themeSelect = document.getElementById('theme-select');
         Object.keys(BANK_SOAL).forEach(theme => {
             const opt = document.createElement('option');
@@ -339,40 +458,35 @@
             themeSelect.appendChild(opt);
         });
 
-        // Fungsi Sensor Huruf (Menampilkan ~25-30% huruf secara acak)
+        // Sensor Huruf (Menampilkan ~25-30% huruf secara acak, misal AYAM -> _ Y _ _)
         function generateMaskedWord(word) {
             const len = word.length;
-            let revealCount = Math.max(1, Math.floor(len * 0.28)); // Minimal 1 huruf terlihat
-            if (len <= 4) revealCount = 1; // Misal AYAM -> hanya 1 huruf terlihat (misal _ Y _ _)
-
+            let revealCount = len <= 4 ? 1 : Math.max(1, Math.floor(len * 0.28));
             let indices = Array.from({ length: len }, (_, i) => i);
-            // Acak indeks
             for (let i = indices.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [indices[i], indices[j]] = [indices[j], indices[i]];
             }
-            const revealedIndices = new Set(indices.slice(0, revealCount));
-
-            return word.split('').map((char, idx) => revealedIndices.has(idx) ? char : '_').join(' ');
+            const revealed = new Set(indices.slice(0, revealCount));
+            return word.split('').map((ch, idx) => revealed.has(idx) ? ch : '_').join(' ');
         }
 
-        // Navigasi Layar
-        function showScreen(screenId) {
-            ['screen-lobby', 'screen-waiting', 'screen-game', 'screen-result'].forEach(id => {
-                document.getElementById(id).classList.add('hidden');
+        function showScreen(id) {
+            ['screen-lobby', 'screen-waiting', 'screen-game', 'screen-result'].forEach(s => {
+                document.getElementById(s).classList.add('hidden');
             });
-            document.getElementById(screenId).classList.remove('hidden');
+            document.getElementById(id).classList.remove('hidden');
         }
 
         function setLobbyStatus(msg, isError = false) {
             const el = document.getElementById('lobby-status');
             el.textContent = msg;
-            el.className = `text-center text-sm ${isError ? 'text-rose-400' : 'text-amber-400'}`;
+            el.className = `text-center text-sm font-semibold ${isError ? 'text-rose-500' : 'text-amber-600'}`;
             el.classList.remove('hidden');
         }
 
         // ==========================================
-        // 3. LOGIKA PEMBUATAN ROOM (PEMAIN 1 / HOST)
+        // 3. BUAT ROOM (PEMAIN 1 / INSTRUKTUR)
         // ==========================================
         document.getElementById('btn-create-room').addEventListener('click', () => {
             isHost = true;
@@ -381,11 +495,8 @@
             currentItem = list[Math.floor(Math.random() * list.length)];
             maskedWord = generateMaskedWord(currentItem.word);
 
-            // Buat kode room ringkas (SD-XXXX)
-            const randomNum = Math.floor(1000 + Math.random() * 9000);
-            const roomCode = `SD-${randomNum}`;
-
-            setLobbyStatus("Menghubungkan ke jaringan P2P...");
+            const roomCode = `SD-${Math.floor(1000 + Math.random() * 9000)}`;
+            setLobbyStatus("Menyiapkan kursi dan room...");
             peer = new Peer(roomCode);
 
             peer.on('open', (id) => {
@@ -396,10 +507,8 @@
 
             peer.on('connection', (connection) => {
                 conn = connection;
-                setupConnectionHandlers();
-                
+                setupConnection();
                 conn.on('open', () => {
-                    // Kirim data awal ke Pemain 2 (tanpa membocorkan kunci jawaban!)
                     conn.send({
                         type: 'START_GAME',
                         theme: currentTheme,
@@ -410,70 +519,85 @@
             });
 
             peer.on('error', (err) => {
-                setLobbyStatus("Gagal membuat room: " + err.type + ". Coba klik lagi.", true);
+                setLobbyStatus("Gagal membuat room (" + err.type + "). Coba klik lagi.", true);
             });
         });
 
         // ==========================================
-        // 4. LOGIKA GABUNG ROOM (PEMAIN 2 / PENEBak)
+        // 4. GABUNG ROOM (PEMAIN 2 / PENEBak)
         // ==========================================
         document.getElementById('btn-join-room').addEventListener('click', () => {
             const rawCode = document.getElementById('input-room-code').value.trim().toUpperCase();
             if (!rawCode) {
-                setLobbyStatus("Masukkan kode room terlebih dahulu!", true);
+                setLobbyStatus("Masukkan kode room dulu ya!", true);
                 return;
             }
-
             isHost = false;
-            setLobbyStatus("Mencari room " + rawCode + "...");
+            setLobbyStatus("Menuju room " + rawCode + "...");
             peer = new Peer();
 
             peer.on('open', () => {
                 conn = peer.connect(rawCode);
-                setupConnectionHandlers();
+                setupConnection();
             });
 
             peer.on('error', (err) => {
-                setLobbyStatus("Room tidak ditemukan atau kode salah (" + err.type + ").", true);
+                setLobbyStatus("Room tidak ditemukan (" + err.type + "). Cek kembali kodenya.", true);
             });
         });
 
         // ==========================================
-        // 5. KOMUNIKASI DATA ANTAR PEMAIN
+        // 5. SINKRONISASI BALON OBROLAN & JAWABAN
         // ==========================================
-        function setupConnectionHandlers() {
+        function showBubbleP1(answerText) {
+            const bubble = document.getElementById('bubble-p1');
+            const box = document.getElementById('bubble-p1-box');
+            const tail = document.getElementById('bubble-p1-tail');
+            const textEl = document.getElementById('bubble-p1-text');
+
+            textEl.textContent = answerText + "!";
+            
+            let bgClass = "bg-emerald-500";
+            if (answerText === "TIDAK") bgClass = "bg-rose-500";
+            if (answerText === "BISA JADI") bgClass = "bg-amber-400 text-amber-950";
+
+            box.className = `${bgClass} border-2 border-white ${answerText === "BISA JADI" ? "text-amber-950" : "text-white"} text-sm md:text-base font-extrabold px-4 py-2 rounded-2xl shadow-lg text-center`;
+            tail.className = `w-3 h-3 ${bgClass.split(' ')[0]} border-r-2 border-b-2 border-white rotate-45 mx-auto -mt-1.5`;
+
+            bubble.classList.remove('hidden', 'bubble-pop');
+            void bubble.offsetWidth; // trigger reflow animasi
+            bubble.classList.add('bubble-pop');
+        }
+
+        function showBubbleP2(guessText) {
+            const bubble = document.getElementById('bubble-p2');
+            document.getElementById('bubble-p2-text').textContent = `"${guessText}?"`;
+            bubble.classList.remove('hidden', 'bubble-pop');
+            void bubble.offsetWidth;
+            bubble.classList.add('bubble-pop');
+        }
+
+        function setupConnection() {
             conn.on('data', (data) => {
                 if (data.type === 'START_GAME') {
-                    // Diterima oleh Pemain 2
                     currentTheme = data.theme;
                     maskedWord = data.maskedWord;
                     startGameplay();
                 } 
                 else if (data.type === 'SIGNAL') {
-                    // Diterima oleh Pemain 2 (IYA / TIDAK / BISA JADI dari P1)
-                    const display = document.getElementById('p2-signal-display');
-                    display.textContent = data.value;
-                    display.className = "text-2xl font-black mt-1 transition-transform scale-110 " + 
-                        (data.value === 'IYA' ? 'text-emerald-400' : 
-                         data.value === 'TIDAK' ? 'text-rose-400' : 'text-amber-400');
-                    setTimeout(() => display.classList.remove('scale-110'), 200);
+                    // Tampilkan balon jawaban Instruktur di layar Penebak
+                    showBubbleP1(data.value);
                 } 
                 else if (data.type === 'GUESS') {
-                    // Diterima oleh Pemain 1 saat Pemain 2 menebak
                     if (!isHost || gameEnded) return;
                     
-                    const logBox = document.getElementById('p1-guess-log');
-                    if (logBox.querySelector('.italic')) logBox.innerHTML = '';
-                    
+                    // Tampilkan balon tebakan Penebak di atas karakter kiri
+                    showBubbleP2(data.guess);
+
                     const cleanGuess = data.guess.trim().toUpperCase();
                     const isCorrect = (cleanGuess === currentItem.word.toUpperCase());
 
-                    const entry = document.createElement('div');
-                    entry.innerHTML = `<span class="text-slate-500">[${formatTime(timeLeft)}]</span> P2 menebak: <strong class="${isCorrect ? 'text-emerald-400' : 'text-rose-400'}">${data.guess}</strong>`;
-                    logBox.prepend(entry);
-
                     if (isCorrect) {
-                        // Pemain 2 berhasil menebak! Kirim sinyal kemenangan
                         conn.send({
                             type: 'GAME_OVER',
                             win: true,
@@ -482,16 +606,14 @@
                         });
                         endGame(true, currentItem.word, currentItem.fact);
                     } else {
-                        // Beri tahu Pemain 2 bahwa tebakannya masih salah
                         conn.send({ type: 'WRONG_GUESS' });
                     }
                 } 
                 else if (data.type === 'WRONG_GUESS') {
-                    // Animasi salah pada input Pemain 2
                     const input = document.getElementById('input-guess');
                     const feedback = document.getElementById('p2-feedback');
                     input.classList.add('shake', 'border-rose-500');
-                    feedback.textContent = "❌ Belum tepat! Coba tanya ciri-ciri lain atau tebak lagi.";
+                    feedback.textContent = "Belum tepat! Coba tanya ciri lainnya atau tebak lagi.";
                     setTimeout(() => input.classList.remove('shake', 'border-rose-500'), 400);
                 } 
                 else if (data.type === 'GAME_OVER') {
@@ -501,14 +623,14 @@
 
             conn.on('close', () => {
                 if (!gameEnded) {
-                    alert("Koneksi dengan pemain lain terputus!");
+                    alert("Teman mabar keluar dari room.");
                     location.reload();
                 }
             });
         }
 
         // ==========================================
-        // 6. LOGIKA GAMEPLAY & TIMER 5 MENIT
+        // 6. GAMEPLAY & TIMER 5 MENIT
         // ==========================================
         function startGameplay() {
             showScreen('screen-game');
@@ -516,15 +638,16 @@
 
             if (isHost) {
                 document.getElementById('panel-p1').classList.remove('hidden');
-                document.getElementById('p1-secret-word').textContent = currentItem.word;
-                document.getElementById('p1-fact-preview').textContent = currentItem.fact;
+                document.getElementById('board-label').textContent = "Kata Rahasia (Jawab P2)";
+                document.getElementById('board-word-display').textContent = currentItem.word;
+                document.getElementById('p1-fact-preview').textContent = "Info: " + currentItem.fact;
             } else {
                 document.getElementById('panel-p2').classList.remove('hidden');
-                document.getElementById('p2-masked-word').textContent = maskedWord;
+                document.getElementById('board-label').textContent = "Petunjuk Huruf";
+                document.getElementById('board-word-display').textContent = maskedWord;
             }
 
-            // Mulai Timer 5 Menit (300 detik)
-            timeLeft = 300;
+            timeLeft = 300; // 5 menit
             updateTimerDisplay();
             timerInterval = setInterval(() => {
                 timeLeft--;
@@ -533,7 +656,6 @@
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
                     if (isHost && !gameEnded) {
-                        // Waktu habis -> Keduanya kalah
                         conn.send({
                             type: 'GAME_OVER',
                             win: false,
@@ -547,28 +669,24 @@
         }
 
         function updateTimerDisplay() {
-            const timerEl = document.getElementById('game-timer');
-            timerEl.textContent = formatTime(timeLeft);
+            const el = document.getElementById('game-timer');
+            const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const s = (timeLeft % 60).toString().padStart(2, '0');
+            el.textContent = `${m}:${s}`;
             if (timeLeft <= 30) {
-                timerEl.classList.remove('text-amber-400');
-                timerEl.classList.add('text-rose-500', 'animate-pulse');
+                el.className = "font-bold text-base md:text-lg text-rose-600 animate-pulse";
             }
         }
 
-        function formatTime(sec) {
-            const m = Math.floor(sec / 60).toString().padStart(2, '0');
-            const s = (sec % 60).toString().padStart(2, '0');
-            return `${m}:${s}`;
-        }
-
-        // Fungsi Tombol IYA / TIDAK / BISA JADI (Player 1)
+        // Player 1 menekan tombol Iya / Tidak / Bisa Jadi
         function sendSignal(answer) {
             if (conn && conn.open && !gameEnded) {
+                showBubbleP1(answer); // Tampilkan juga di layar P1 sendiri
                 conn.send({ type: 'SIGNAL', value: answer });
             }
         }
 
-        // Fungsi Submit Tebakan (Player 2)
+        // Player 2 mengirim tebakan
         document.getElementById('form-guess').addEventListener('submit', (e) => {
             e.preventDefault();
             if (gameEnded) return;
@@ -578,33 +696,28 @@
             if (!guessVal) return;
 
             if (conn && conn.open) {
+                showBubbleP2(guessVal); // Tampilkan balon obrolan di layar P2 sendiri
                 conn.send({ type: 'GUESS', guess: guessVal });
                 input.value = '';
                 input.focus();
             }
         });
 
-        // Fungsi Layar Akhir (Menang / Kalah Bersama)
         function endGame(isWin, secretWord, factText) {
             if (gameEnded) return;
             gameEnded = true;
             clearInterval(timerInterval);
 
-            const badge = document.getElementById('result-badge');
-            const title = document.getElementById('result-title');
-
-            if (isWin) {
-                badge.textContent = "🎉 Kerja Sama Berhasil!";
-                badge.className = "inline-block px-4 py-1.5 rounded-full text-sm font-extrabold uppercase tracking-wider bg-emerald-500/20 text-emerald-400";
-                title.textContent = "KALIAN BERDUA MENANG!";
-            } else {
-                badge.textContent = "⏰ Waktu 5 Menit Habis!";
-                badge.className = "inline-block px-4 py-1.5 rounded-full text-sm font-extrabold uppercase tracking-wider bg-rose-500/20 text-rose-400";
-                title.textContent = "KALIAN BERDUA KALAH!";
-            }
+            document.getElementById('result-icon').textContent = isWin ? "🎉" : "⏰";
+            document.getElementById('result-title').textContent = isWin 
+                ? "HEBAT! KALIAN BERDUA MENANG!" 
+                : "WAKTU HABIS! KALIAN BERDUA KALAH!";
+            document.getElementById('result-title').className = isWin
+                ? "text-2xl md:text-3xl font-extrabold text-emerald-600"
+                : "text-2xl md:text-3xl font-extrabold text-rose-600";
 
             document.getElementById('result-word').textContent = secretWord;
-            document.getElementById('result-fact').textContent = "Fakta Edukasi: " + factText;
+            document.getElementById('result-fact').textContent = "Fakta Pelajaran: " + factText;
             showScreen('screen-result');
         }
     </script>
